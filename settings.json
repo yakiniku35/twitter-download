@@ -1,0 +1,72 @@
+{
+    "save_path": "",
+    "save_path_info": "就算是windows路径也请用 '/' ,而不是反斜杠(可以留空)",
+
+    "還沒crawler的用戶_info": ["2025_02_08_要從頭開始"],
+    "還沒crawler的用戶": [],
+
+
+    "user_list_info": ["2025_08_23"],
+    "user_lst": ["k64chdm2_","87giYanagi87","193iKkyu3","XaiabP","hal_h_l","enako_cos"],
+
+    "備份":["Ruri_LapisL","epppuni","himeko074","193iKkyu3","1004yrm_","tuki_music_","saki_miyamoto","lucario0517","Honda_poko",
+    "imay3927","myao_mix","vega_teu","liveforkaise","reo_cosplay","___chanoto___","mishirudo",
+    "yubn02_","biyagura","875cos","biya1024","lo_vvo4","tenten_usanyan","Riribebe123",
+    "soyogi_maru","_momo_rina_","ni__p_","u_nemu_i","suzuran_ro","ken2nbnb","_xxkhyn","Lian__oO",
+    "teyaeneRingo","kokoro777pp","Ryu_bb1","Nekota_Ivu","littlekycap","Imneko16",
+    "o_o_risa","02xuu_","uoxouo114","x_senyan","enako_cos","LOVEKILLYOU_","kasagi_cos",
+    "rizunya","shii_0815","shii__0815","ayunochan_","ramunesan22","pastaUo_oU",
+    "iorimoe_five","snexxxxxxx","kyoutu_ztmr","katekyo_nene","ushigakawaii","_oyasumili",
+    "95rn16","XaiabP","_vouyu_","HaL_h_l","AshleyRami20053","lmymocodera","astoro_nomia",
+    "ero_inkyung","38mofu","kyoutu_ztmr","Sithle011","taru153","ggwonnaa_","mikansu1","konomiochan",
+    "naomi_majima","celia_aya","chanbaekkailu1","puutin_cos","kunitarouart","siina_nagi326",
+    "Light_910","mmm_mii_","___pogh","pnopno080","suzuka_saga","yamasezenn",
+    "yuiichan77","skr_u_","mashiroKta","x_ashtray_x","tabubb_l","Ruru_Selfie",
+    "ah_yzy_mh","Wan_wan__K","Nyaoo_Cos","yakihokke_m"],
+
+    "user_lst_info": "填入要下载的用户名(@后面的字符),支持多用户下载,用户名字间逗号(英文逗号,不要有空格)隔开",
+
+    "cookie": "auth_token=040d858ec1ca8ee534c6ccd8b0d9beadd7108ff5; ct0=ca34cae814d64eee8e9b0a4946bd7f8cdb1e9e410edf88deac18a303abafba9b9f9a7d8a3a3c20095bd71ea8d42afb39bf3a7b3b734d2edaccc00666cb403e48dba8f618842a90c0b762b750bc51fd5f;",
+    "cookie_info": "填入 cookie (auth_token与ct0字段) //重要:替换掉其中的x即可, 注意不要删掉分号",
+
+
+    "emmmmmm": "以下选项三选一, 一般全false, 即 下载目标用户自己发的图片",
+
+    "has_retweet": false,
+    "has_retweet_info": "是否包含转推 (包含转推会消耗大量API调用次数)",
+
+    "high_lights": false,
+    "high_lights_info": "推特的 [Highlights]亮点 标签，与 [媒体][转推] 不共存，即仅下载亮点标签下的内容",
+
+    "likes": false,
+    "likes_info": "用户界面 [Likes] 标签页，即下载指定用户点过赞的推文，与 [媒体][转推][亮点] 不共存, 不支持时间范围限制默认全部下载(点赞时间无法获取), 不生成csv数据统计",
+
+    "_emmmmmm_": "---------------",
+    
+
+    "time_range": "2025-09-16:2030-01-01",
+    "time_range_info": "时间范围限制,格式如 1990-01-01:2030-01-01 ,不填默认无限制1990-01-01:2030-01-01",
+
+    "down_log": true,
+    "down_log_info": "开启后将记录已下载的内容,避免重复下载浪费带宽; 注意:如需重新下载已下载内容,需要关闭此选项或删除目录下的 cache_data.log 文件",
+
+    "autoSync": true,
+    "autoSync_info": "开启后将基于本地已有的内容自动同步最新的部分, 本质上是自动调整时间范围的左半部分, 右半建议2030-01-01或更长",
+
+    "image_format": "png",
+    "image_format_info": "可选项: orig, jpg, png; orig-(自适应原图_以推特服务器为准_大部分为jpg_少部分png), jpg-(全部以jpg格式保存), png-(全部以png格式保存_文件较大)",
+
+    "has_video": true,
+    "has_video_info": "是否下载推文中的视频",
+
+    "log_output": false,
+    "log_output_info": "是否需要下载过程日志输出",
+
+    "async_down": true,
+    "async_down_info": "异步下载,默认开启,网络不好时可以关闭,并发数量可在主函数16行修改",
+
+    "proxy": "",
+    "proxy_info": "手动配置代理,默认为空,非必要无需填写 格式: http://localhost:port ",
+
+    "(๑´ڡ`๑)": "info 是注释，凑合着看吧"
+}
