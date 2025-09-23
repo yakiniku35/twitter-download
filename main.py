@@ -130,6 +130,25 @@ def get_other_info(_user_info):
         return False
     return True
 
+def print_time_range():
+    """显示本次下载的时间范围"""
+    def stamp2date(stamp):
+        """将时间戳转换为可读日期格式"""
+        return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(stamp / 1000))
+    
+    start_date = stamp2date(start_time_stamp)
+    end_date = stamp2date(end_time_stamp)
+    
+    print(
+        f'''
+        <======下载时间范围=====>
+        开始时间: {start_date}
+        结束时间: {end_date}
+        AutoSync: {"启用" if autoSync else "禁用"}
+        <====================>
+        '''
+    )
+
 def print_info(_user_info):
     print(
         f'''
@@ -374,6 +393,7 @@ def main(_user_info: object):
     if not get_other_info(_user_info):
         return False
     print_info(_user_info)
+    print_time_range()  # 显示本次下载的时间范围
 
     # 創建 twitter 資料夾
     twitter_folder = os.path.join(settings['save_path'], 'twitter')
