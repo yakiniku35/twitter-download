@@ -228,3 +228,5 @@ __marimo__/
 # Project specific
 cache_data.log
 settings.json.backup
+settings.json
+last_timestamp.txt

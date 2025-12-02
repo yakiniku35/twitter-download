@@ -1,0 +1,57 @@
+=== CODE ANALYSIS & OPTIMIZATION RECOMMENDATIONS ===
+
+ISSUES FOUND:
+
+1. SECURITY ISSUES:
+   - Cookie credentials exposed in settings.json, tag_down.py, text_down.py
+   - No .gitignore file to prevent committing credentials
+
+2. CODE DUPLICATION:
+   - main.py and main2.py have ~95% identical code
+   - get_other_info() duplicated in main.py, main2.py, text_down.py
+   - stamp2time() duplicated in multiple files
+   - URL building logic duplicated across files
+
+3. HARDCODED VALUES:
+   - Bearer token hardcoded in multiple files
+   - API endpoints hardcoded
+   - GraphQL query IDs hardcoded
+
+4. ERROR HANDLING:
+   - Bare except blocks that hide errors
+   - No retry limits in download loops
+   - No validation of user inputs
+
+5. RESOURCE MANAGEMENT:
+   - Global variables used extensively
+   - File handles may not close on errors
+   - No connection pooling for httpx
+
+6. CODE QUALITY:
+   - Inconsistent naming (camelCase vs snake_case)
+   - Magic numbers throughout
+   - Comments in Chinese mixed with English
+   - Very long functions (300+ lines)
+
+7. POTENTIAL BUGS:
+   - time_comparison() returns list instead of tuple
+   - orig_fail logic in download may infinite loop
+   - No timeout on async semaphore acquisition
+
+8. PERFORMANCE:
+   - Inefficient string concatenation in loops
+   - Multiple file reads/writes that could be batched
+   - No caching of API responses
+
+9. MAINTAINABILITY:
+   - No type hints consistently used
+   - No docstrings
+   - Complex nested conditionals
+   - 450+ line functions
+
+10. MISSING FEATURES:
+    - No rate limit handling with backoff
+    - No progress bars
+    - No resume capability for interrupted downloads
+    - No validation of downloaded files
+

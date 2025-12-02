@@ -324,9 +324,10 @@ def download_control(_user_info):
                 except Exception as e:
                     print(url)
                     return False
+            MAX_RETRIES = 10  # 最大重试次数
             count = 0
             orig_fail = 0  # 0-原图下载成功 或未开启原图下载  1-JPEG 原图下载失败，尝试 PNG 原图下载  2-原图下载失败，尝试使用name=4096x4096下载
-            while True:
+            while count < MAX_RETRIES:
                 try:
                     async with semaphore:
                         async with httpx.AsyncClient(proxy=proxies) as client:
@@ -349,9 +350,12 @@ def download_control(_user_info):
                 except Exception as e:
                     if '.mp4' in url or img_format == "png" or str(e) != "404":
                         count += 1
+                        if count >= MAX_RETRIES:
+                            print(f'{_file_name}=====>下载失败，已重试{MAX_RETRIES}次，跳过此文件')
+                            break
                         print(f'{_file_name}=====>第{count}次下载失败,正在重试(多次失败时请降低main.py第16行-异步模式)')
                         print(url)
-                    elif img_format != "png":
+                    elif img_format != "png" and orig_fail < 2:
                         if orig_fail == 0:
                             orig_fail = 1
                             # 優先嘗試 name=4096x4096
@@ -360,6 +364,10 @@ def download_control(_user_info):
                             orig_fail = 2
                             # 如果 name=4096x4096 失敗，退而求其次 name=orig
                             url = url.replace('name=4096x4096', 'name=orig')
+                    else:
+                        # orig_fail >= 2 或其他无法恢复的错误，跳出循环
+                        print(f'{_file_name}=====>下载失败，无法恢复，跳过此文件')
+                        break
 
         while True:
             photo_lst = get_download_url(_user_info)
