@@ -6,6 +6,10 @@ import asyncio
 import os
 import json
 import sys
+import urllib3
+
+# Disable SSL warnings when verify=False is used
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 sys.path.append('.')
 from user_info import User_info
@@ -117,16 +121,16 @@ def get_other_info(_user_info):
     url = 'https://twitter.com/i/api/graphql/xc8f1g7BYqr6VTzTbvNlGw/UserByScreenName?variables={"screen_name":"' + _user_info.screen_name + '","withSafetyModeUserFields":false}&features={"hidden_profile_likes_enabled":false,"hidden_profile_subscriptions_enabled":false,"responsive_web_graphql_exclude_directive_enabled":true,"verified_phone_label_enabled":false,"subscriptions_verification_info_verified_since_enabled":true,"highlights_tweets_tab_ui_enabled":true,"creator_subscriptions_tweet_preview_api_enabled":true,"responsive_web_graphql_skip_user_profile_image_extensions_enabled":false,"responsive_web_graphql_timeline_navigation_enabled":true}&fieldToggles={"withAuxiliaryUserLabels":false}'
     try:
         global request_count
-        response = httpx.get(quote_url(url), headers=_headers, proxy=proxies).text
+        response = httpx.get(quote_url(url), headers=_headers, proxy=proxies, verify=False).text
         request_count += 1
         raw_data = json.loads(response)
         _user_info.rest_id = raw_data['data']['user']['result']['rest_id']
         _user_info.name = raw_data['data']['user']['result']['legacy']['name']
         _user_info.statuses_count = raw_data['data']['user']['result']['legacy']['statuses_count']
         _user_info.media_count = raw_data['data']['user']['result']['legacy']['media_count']
-    except Exception:
+    except Exception as e:
         print('获取信息失败')
-        print(response)
+        print(f'错误: {e}')
         return False
     return True
 
@@ -259,7 +263,7 @@ def get_download_url(_user_info):
         url = url_top + url_bottom  # 第一页,无cursor
     try:
         global request_count
-        response = httpx.get(quote_url(url), headers=_headers, proxy=proxies).text
+        response = httpx.get(quote_url(url), headers=_headers, proxy=proxies, verify=False).text
         request_count += 1
         try:
             raw_data = json.loads(response)
