@@ -68,6 +68,15 @@
     "max_concurrent_requests": 10,
     "max_concurrent_requests_info": "最大并发下载数量,默认10,网络不好时可以降低",
 
+    "max_download_retries": 10,
+    "max_download_retries_info": "下载文件时的最大重试次数,默认10次",
+
+    "max_api_retries": 3,
+    "max_api_retries_info": "API请求失败时的最大重试次数,默认3次",
+
+    "retry_delay": 2,
+    "retry_delay_info": "重试间隔(秒),使用指数退避策略,默认2秒",
+
     "md_output": true,
     "md_output_info": "是否生成Markdown文件记录下载的推文",
 
