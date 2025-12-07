@@ -18,6 +18,9 @@ from cache_gen import cache_gen
 from url_utils import quote_url
 
 max_concurrent_requests = 8  # 最大并发数量，默认为8，对自己网络有自信的可以调高; 遇到多次下载失败时适当降低
+max_download_retries = 10  # 下载文件时的最大重试次数
+max_api_retries = 3  # API请求失败时的最大重试次数
+retry_delay = 2  # 重试基础间隔(秒)
 
 def del_special_char(string):
     string = re.sub(r'[^\u4e00-\u9fa5\u0030-\u0039\u0041-\u005a\u0061-\u007a\u3040-\u31FF\.]', '', string)
@@ -90,6 +93,12 @@ with open('settings.json', 'r', encoding='utf8') as f:
         log_output = True
     if not settings['async_down']:
         async_down = False
+    if settings.get('max_download_retries'):
+        max_download_retries = settings['max_download_retries']
+    if settings.get('max_api_retries'):
+        max_api_retries = settings['max_api_retries']
+    if settings.get('retry_delay'):
+        retry_delay = settings['retry_delay']
     ###### proxy ######
     if settings['proxy']:
         proxies = settings['proxy']
@@ -119,20 +128,28 @@ down_count = 0  # 下载图片数计数
 
 def get_other_info(_user_info):
     url = 'https://twitter.com/i/api/graphql/xc8f1g7BYqr6VTzTbvNlGw/UserByScreenName?variables={"screen_name":"' + _user_info.screen_name + '","withSafetyModeUserFields":false}&features={"hidden_profile_likes_enabled":false,"hidden_profile_subscriptions_enabled":false,"responsive_web_graphql_exclude_directive_enabled":true,"verified_phone_label_enabled":false,"subscriptions_verification_info_verified_since_enabled":true,"highlights_tweets_tab_ui_enabled":true,"creator_subscriptions_tweet_preview_api_enabled":true,"responsive_web_graphql_skip_user_profile_image_extensions_enabled":false,"responsive_web_graphql_timeline_navigation_enabled":true}&fieldToggles={"withAuxiliaryUserLabels":false}'
-    try:
-        global request_count
-        response = httpx.get(quote_url(url), headers=_headers, proxy=proxies, verify=False).text
-        request_count += 1
-        raw_data = json.loads(response)
-        _user_info.rest_id = raw_data['data']['user']['result']['rest_id']
-        _user_info.name = raw_data['data']['user']['result']['legacy']['name']
-        _user_info.statuses_count = raw_data['data']['user']['result']['legacy']['statuses_count']
-        _user_info.media_count = raw_data['data']['user']['result']['legacy']['media_count']
-    except Exception as e:
-        print('获取信息失败')
-        print(f'错误: {e}')
-        return False
-    return True
+    
+    global request_count
+    for attempt in range(max_api_retries):
+        try:
+            response = httpx.get(quote_url(url), headers=_headers, proxy=proxies, verify=False, timeout=30.0).text
+            request_count += 1
+            raw_data = json.loads(response)
+            _user_info.rest_id = raw_data['data']['user']['result']['rest_id']
+            _user_info.name = raw_data['data']['user']['result']['legacy']['name']
+            _user_info.statuses_count = raw_data['data']['user']['result']['legacy']['statuses_count']
+            _user_info.media_count = raw_data['data']['user']['result']['legacy']['media_count']
+            return True
+        except Exception as e:
+            if attempt < max_api_retries - 1:
+                wait_time = retry_delay ** (attempt + 1)
+                print(f'获取信息失败 (尝试 {attempt + 1}/{max_api_retries}), {wait_time}秒后重试...')
+                print(f'错误: {e}')
+                time.sleep(wait_time)
+            else:
+                print(f'获取信息失败，已重试{max_api_retries}次')
+                print(f'错误: {e}')
+                return False
 
 def print_time_range():
     """显示本次下载的时间范围"""
@@ -261,19 +278,42 @@ def get_download_url(_user_info):
         url = url_top + '"cursor":"' + _user_info.cursor + '",' + url_bottom
     else:
         url = url_top + url_bottom  # 第一页,无cursor
-    try:
-        global request_count
-        response = httpx.get(quote_url(url), headers=_headers, proxy=proxies, verify=False).text
-        request_count += 1
+    
+    global request_count
+    for attempt in range(max_api_retries):
         try:
-            raw_data = json.loads(response)
-        except Exception:
-            if 'Rate limit exceeded' in response:
-                print('API次数已超限')
+            response = httpx.get(quote_url(url), headers=_headers, proxy=proxies, verify=False, timeout=30.0).text
+            request_count += 1
+            try:
+                raw_data = json.loads(response)
+                break
+            except Exception:
+                if 'Rate limit exceeded' in response:
+                    print('API次数已超限')
+                    return
+                else:
+                    if attempt < max_api_retries - 1:
+                        wait_time = retry_delay ** (attempt + 1)
+                        print(f'获取数据失败 (尝试 {attempt + 1}/{max_api_retries}), {wait_time}秒后重试...')
+                        print(response[:200])
+                        time.sleep(wait_time)
+                    else:
+                        print(f'获取数据失败，已重试{max_api_retries}次')
+                        print(response)
+                        return
+        except Exception as e:
+            if attempt < max_api_retries - 1:
+                wait_time = retry_delay ** (attempt + 1)
+                print(f'API请求失败 (尝试 {attempt + 1}/{max_api_retries}): {e}, {wait_time}秒后重试...')
+                time.sleep(wait_time)
             else:
-                print('获取数据失败')
-            print(response)
-            return
+                print(f'API请求失败，已重试{max_api_retries}次: {e}')
+                return False
+    else:
+        print('获取推文信息失败，已达到最大重试次数')
+        return False
+    
+    try:
         if has_highlights:  # 亮点模式
             raw_data = raw_data['data']['user']['result']['timeline']['timeline']['instructions'][-1]['entries']
         elif has_retweet:  # 与likes共用
@@ -328,10 +368,9 @@ def download_control(_user_info):
                 except Exception as e:
                     print(url)
                     return False
-            MAX_RETRIES = 10  # 最大重试次数
             count = 0
             orig_fail = 0  # 0-原图下载成功 或未开启原图下载  1-JPEG 原图下载失败，尝试 PNG 原图下载  2-原图下载失败，尝试使用name=4096x4096下载
-            while count < MAX_RETRIES:
+            while count < max_download_retries:
                 try:
                     async with semaphore:
                         async with httpx.AsyncClient(proxy=proxies) as client:
@@ -354,11 +393,14 @@ def download_control(_user_info):
                 except Exception as e:
                     if '.mp4' in url or img_format == "png" or str(e) != "404":
                         count += 1
-                        if count >= MAX_RETRIES:
-                            print(f'{_file_name}=====>下载失败，已重试{MAX_RETRIES}次，跳过此文件')
+                        if count >= max_download_retries:
+                            print(f'{_file_name}=====>下载失败，已重试{max_download_retries}次，跳过此文件')
                             break
-                        print(f'{_file_name}=====>第{count}次下载失败,正在重试(多次失败时请降低main.py第16行-异步模式)')
-                        print(url)
+                        wait_time = min(retry_delay ** count, 60)  # 最多等待60秒
+                        print(f'{_file_name}=====>第{count}次下载失败, {wait_time}秒后重试 (错误: {e})')
+                        if log_output:
+                            print(f'URL: {url}')
+                        await asyncio.sleep(wait_time)
                     elif img_format != "png" and orig_fail < 2:
                         if orig_fail == 0:
                             orig_fail = 1
